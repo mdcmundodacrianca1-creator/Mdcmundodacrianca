@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDC - Mundo da Criança | Sistema POS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #FF6B00;
+            --primary-dark: #E05D00;
+            --primary-light: #FF8833;
+            --secondary: #333333;
+            --bg-light: #F4F6F9;
+            --white: #FFFFFF;
+            --gray-100: #F8F9FA;
+            --gray-200: #E9ECEF;
+            --gray-300: #DEE2E6;
+            --gray-600: #6C757D;
+            --success: #28A745;
+            --danger: #DC3545;
+            --warning: #FFC107;
+            --shadow: 0 4px 15px rgba(255, 107, 0, 0.15);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--secondary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* 1. LOGIN SCREEN */
+        #login-screen {
+            background: linear-gradient(135deg, #FFF5EC 0%, #FFE2CC 100%);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 420px;
+            padding: 30px 25px;
+            text-align: center;
+            border-top: 6px solid var(--primary);
+        }
+
+        .login-header h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-top: 10px;
+        }
+
+        .login-header p {
+            color: var(--gray-600);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .pin-display {
+            background: var(--gray-100);
+            border: 2px solid var(--gray-300);
+            border-radius: 12px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .pin-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--gray-300);
+            transition: all 0.2s;
+        }
+
+        .pin-dot.filled {
+            background: var(--primary);
+            transform: scale(1.2);
+        }
+
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .num-btn {
+            background: var(--white);
+            border: 1px solid var(--gray-300);
+            border-radius: 12px;
+            height: 55px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--secondary);
+            cursor: pointer;
+            box-shadow: 0 3px 0 var(--gray-300);
+            transition: all 0.1s;
+        }
+
+        .num-btn:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+
+        .num-btn.clear {
+            background: #FFEBEB;
+            color: var(--danger);
+            border-color: #FFCACA;
+            box-shadow: 0 3px 0 #FFCACA;
+        }
+
+        .num-btn.enter {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary-dark);
+            box-shadow: 0 3px 0 var(--primary-dark);
+        }
+
+        /* 2. MAIN APP LAYOUT */
+        #app-screen {
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            z-index: 10;
+        }
+
+        .brand-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-info h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .brand-info span {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            overflow: hidden;
+        }
+
+        .btn-action-header {
+            background: rgba(0,0,0,0.15);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 6px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        nav {
+            background: var(--white);
+            display: flex;
+            border-bottom: 1px solid var(--gray-300);
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 14px 20px;
+            border: none;
+            background: none;
+            font-weight: 600;
+            color: var(--gray-600);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: #FFF9F5;
+        }
+
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .tab-content {
+            display: none;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--gray-100);
+            padding-bottom: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        label .required {
+            color: var(--danger);
+        }
+
+        input, select, textarea {
+            padding: 10px 14px;
+            border: 1px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--gray-600);
+            color: var(--white);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .dynamic-child-container {
+            background: var(--gray-100);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--gray-300);
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.88rem;
+        }
+
+        th {
+            background: var(--gray-100);
+            padding: 12px;
+            font-weight: 600;
+            color: var(--secondary);
+            border-bottom: 2px solid var(--gray-300);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--gray-200);
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: #FFFDFB;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .badge-diario { background: #E3F2FD; color: #0D47A1; }
+        .badge-festa { background: #FCE4EC; color: #880E4F; }
+        .badge-escola { background: #E8F5E9; color: #1B5E20; }
+        .badge-atividade { background: #FFF3E0; color: #E65100; }
+
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .filter-bar input, .filter-bar select {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--gray-100);
+            padding: 16px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary);
+        }
+        .stat-card h4 {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            text-transform: uppercase;
+        }
+        .stat-card .value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--secondary);
+        }
+
+        #db-alert-banner {
+            background: var(--danger);
+            color: white;
+            padding: 12px 20px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @media print {
+            header, nav, .btn, .filter-bar, #db-alert-banner { display: none !important; }
+            body, main { background: white !important; padding: 0 !important; height: auto !important; }
+            .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="db-alert-banner">
+        <span><i class="fa-solid fa-triangle-exclamation"></i> ALERTA: A base de dados atingiu o limite recomendável! Faça o backup (exportação) e limpe os registos antigos.</span>
+        <button class="btn btn-secondary" style="background:white; color:var(--danger); padding:4px 10px;" onclick="exportToCSV(); resetDatabasePrompt();">Fazer Backup Agora</button>
+    </div>
+
+    <!-- 1. TELA DE LOGIN PIN -->
+    <div id="login-screen" class="screen active">
+        <div class="login-card">
+            <div class="login-header">
+                <svg width="90" height="90" viewBox="0 0 200 200" style="margin-bottom:10px;">
+                    <circle cx="100" cy="100" r="95" fill="#FFF" stroke="#FF6B00" stroke-width="8"/>
+                    <text x="50%" y="45%" text-anchor="middle" fill="#FF6B00" font-size="52" font-weight="900" font-family="Poppins">MDC</text>
+                    <text x="50%" y="68%" text-anchor="middle" fill="#333" font-size="14" font-weight="700" font-family="Poppins">MUNDO DA CRIANÇA</text>
+                </svg>
+                <h2>Acesso ao Sistema</h2>
+                <p>Introduza o seu PIN de acesso</p>
+            </div>
+
+            <div class="pin-display">
+                <div class="pin-dot" id="dot-0"></div>
+                <div class="pin-dot" id="dot-1"></div>
+                <div class="pin-dot" id="dot-2"></div>
+                <div class="pin-dot" id="dot-3"></div>
+            </div>
+
+            <div class="numpad">
+                <button class="num-btn" onclick="pressPin('1')">1</button>
+                <button class="num-btn" onclick="pressPin('2')">2</button>
+                <button class="num-btn" onclick="pressPin('3')">3</button>
+                <button class="num-btn" onclick="pressPin('4')">4</button>
+                <button class="num-btn" onclick="pressPin('5')">5</button>
+                <button class="num-btn" onclick="pressPin('6')">6</button>
+                <button class="num-btn" onclick="pressPin('7')">7</button>
+                <button class="num-btn" onclick="pressPin('8')">8</button>
+                <button class="num-btn" onclick="pressPin('9')">9</button>
+                <button class="num-btn clear" onclick="clearPin()"><i class="fa-solid fa-backspace"></i></button>
+                <button class="num-btn" onclick="pressPin('0')">0</button>
+                <button class="num-btn enter" onclick="submitLogin()"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. TELA PRINCIPAL -->
+    <div id="app-screen" class="screen">
+        <header>
+            <div class="brand-info">
+                <svg width="40" height="40" viewBox="0 0 200 200">
+                    <circle cx="100" cy="100" r="95" fill="#FFF" stroke="#FF6B00" stroke-width="8"/>
+                    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="#FF6B00" font-size="60" font-weight="900">MDC</text>
+                </svg>
+                <div>
+                    <h1>MDC - Mundo da Criança</h1>
+                    <span>Base de Dados & Vendas</span>
+                </div>
+            </div>
+
+            <div style="display:flex; align-items:center;">
+                <div class="user-badge">
+                    <div class="user-avatar" id="header-avatar">U</div>
+                    <span id="header-username" style="font-weight:600; font-size:0.9rem;">Operador</span>
+                </div>
+                <!-- BOTÃO DE TROCAR DE UTILIZADOR -->
+                <button class="btn-action-header" onclick="switchUser()" title="Trocar de Utilizador"><i class="fa-solid fa-users-viewfinder"></i> Trocar</button>
+                <button class="btn-action-header" onclick="logout()" title="Sair"><i class="fa-solid fa-right-from-bracket"></i></button>
+            </div>
+        </header>
+
+        <nav>
+            <button class="nav-tab active" onclick="switchTab('tab-novo-registo')">
+                <i class="fa-solid fa-user-plus"></i> Novo Registo / Venda
+            </button>
+            <button class="nav-tab" onclick="switchTab('tab-registos')">
+                <i class="fa-solid fa-list"></i> Lista de Clientes
+            </button>
+            <button class="nav-tab" onclick="switchTab('tab-fecho')">
+                <i class="fa-solid fa-cash-register"></i> Fecho do Dia
+            </button>
+            <button class="nav-tab" id="admin-tab-btn" onclick="switchTab('tab-admin')">
+                <i class="fa-solid fa-user-shield"></i> Administrador
+            </button>
+        </nav>
+
+        <main>
+            <!-- ABA 1: NOVO REGISTO -->
+            <div id="tab-novo-registo" class="tab-content active">
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-address-card"></i> Ficha de Atendimento
+                    </div>
+                    <form id="client-form" onsubmit="handleSaveClient(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Categoria / Pacote <span class="required">*</span></label>
+                                <select id="reg-pacote" onchange="toggleFormFields()" required>
+                                    <option value="Clientes Diários">Clientes Diários</option>
+                                    <option value="Pacote Festa">Pacote Festa</option>
+                                    <option value="Pacote Escola">Pacote Escola</option>
+                                    <option value="Atividades">Atividades</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label id="label-adulto">Nome do Responsável/Adulto <span class="required">*</span></label>
+                                <input type="text" id="reg-responsavel" placeholder="Nome completo" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Telefone <span class="required">*</span></label>
+                                <input type="tel" id="reg-telefone" placeholder="Ex: 923000000" required>
+                            </div>
+
+                            <div class="form-group" id="group-escola-nome" style="display:none;">
+                                <label>Nome da Escola <span class="required">*</span></label>
+                                <input type="text" id="reg-escola-nome" placeholder="Nome da instituição escolar">
+                            </div>
+
+                            <div class="form-group" id="group-num-criancas">
+                                <label>Número de Crianças <span class="required">*</span></label>
+                                <input type="number" id="reg-num-criancas" min="1" max="20" value="1" onchange="generateChildrenFields()">
+                            </div>
+
+                            <!-- TIPO DE PACOTE FESTA ATUALIZADO -->
+                            <div class="form-group" id="group-tipo-festa" style="display:none;">
+                                <label>Tipo de Pacote Festa <span class="required">*</span></label>
+                                <select id="reg-tipo-festa-val">
+                                    <option value="Pacote Festa VIP Mais Explanada Semana">Pacote Festa VIP Mais Explanada Semana</option>
+                                    <option value="Pacote Festa VIP Mais Explanada Final de Semana">Pacote Festa VIP Mais Explanada Final de Semana</option>
+                                    <option value="Pacote Festa VIP semana">Pacote Festa VIP</option>
+                                     <option value="Pacote Festa VIP final de semana">Pacote Festa VIP final de semana</option>
+                                    <option value="Pacote Festa Normal semana">Pacote Festa Normal</option>
+                                     <option value="Pacote Festa Normal final de final semana">Pacote Festa final de semana</option>
+                                    <option value="Apaga Vela Semana">Apaga Vela Semana</option>
+                                    <option value="Apaga Vela Final de Semana">Apaga Vela Final de Semana</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="group-lanche" style="display:none;">
+                                <label>Opção de Lanche <span class="required">*</span></label>
+                                <select id="reg-lanche-val">
+                                    <option value="Com Lanche">Com Lanche</option>
+                                    <option value="Sem Lanche">Sem Lanche</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>NIF <small style="color:var(--gray-600)">(Opcional)</small></label>
+                                <input type="text" id="reg-nif" placeholder="NIF">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Município <small style="color:var(--gray-600)">(Opcional)</small></label>
+                                <input type="text" id="reg-municipio" placeholder="Município">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Bairro <small style="color:var(--gray-600)">(Opcional)</small></label>
+                                <input type="text" id="reg-bairro" placeholder="Bairro">
+                            </div>
+                        </div>
+
+                        <div id="children-dynamic-area" style="margin-top: 20px;"></div>
+
+                        <div style="margin-top: 20px; display: flex; gap: 10px;">
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar Registo</button>
+                            <button type="reset" class="btn btn-secondary" onclick="setTimeout(generateChildrenFields, 100)">Limpar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ABA 2: LISTA DE CLIENTES -->
+            <div id="tab-registos" class="tab-content">
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-users"></i> Base de Dados de Clientes
+                    </div>
+
+                    <div class="filter-bar">
+                        <input type="text" id="search-input" placeholder="Pesquisar por responsável, criança, escola, telefone..." oninput="renderClientsTable()">
+                        <select id="filter-pacote" onchange="renderClientsTable()">
+                            <option value="">Todas as Categorias</option>
+                            <option value="Clientes Diários">Clientes Diários</option>
+                            <option value="Pacote Festa">Pacote Festa</option>
+                            <option value="Pacote Escola">Pacote Escola</option>
+                            <option value="Atividades">Atividades</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="exportToCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Backup (CSV)</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data / Hora</th>
+                                    <th>Categoria</th>
+                                    <th>Responsável / Instituição</th>
+                                    <th>Criança(s) / Detalhes</th>
+                                    <th>Telefone</th>
+                                    <th>Município/Bairro</th>
+                                    <th>Atendido Por</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clients-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 3: FECHO DO DIA -->
+            <div id="tab-fecho" class="tab-content">
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-calculator"></i> Relatório de Fecho do Dia
+                    </div>
+
+                    <div style="margin-bottom: 20px; display:flex; gap:10px; align-items:center;">
+                        <label>Data do Fecho:</label>
+                        <input type="date" id="fecho-data" onchange="renderFechoDoDia()">
+                        <button class="btn btn-primary" onclick="window.print()"><i class="fa-solid fa-print"></i> Imprimir Fecho</button>
+                    </div>
+
+                    <div class="report-grid">
+                        <div class="stat-card">
+                            <h4>Total Registos Hoje</h4>
+                            <div class="value" id="stat-total-hoje">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Total Arrecadado (Est.)</h4>
+                            <div class="value" id="stat-valor-hoje">0 AOA</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Clientes Diários</h4>
+                            <div class="value" id="stat-diario-hoje">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <h4>Festas / Escolas</h4>
+                            <div class="value" id="stat-festas-escolas-hoje">0</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top:20px; margin-bottom:10px; font-size:1rem;">Registos Efetuados Hoje</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Categoria</th>
+                                    <th>Responsável / Escola</th>
+                                    <th>Valor Ref.</th>
+                                    <th>Operador</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fecho-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 4: ADMINISTRADOR -->
+            <div id="tab-admin" class="tab-content">
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-tags"></i> Gerir Preços dos Pacotes e Vendas
+                    </div>
+                    <form onsubmit="handleSavePrices(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Preço - Clientes Diários (por criança)</label>
+                                <input type="number" id="price-diario" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preço - Festa VIP + Explanada Semana</label>
+                                <input type="number" id="price-vip-exp-sem" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preço - Festa VIP + Explanada Fim de Semana</label>
+                                <input type="number" id="price-vip-exp-fds" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preço - Pacote Festa VIP</label>
+                                <input type="number" id="price-vip" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preço - Pacote Festa Normal</label>
+                                <input type="number" id="price-normal" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preço - Apaga Vela Semana</label>
+                                <input type="number" id="price-vela-sem" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preço - Apaga Vela Fim de Semana</label>
+                                <input type="number" id="price-vela-fds" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preço - Pacote Escola (por criança)</label>
+                                <input type="number" id="price-escola" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Preço - Atividades</label>
+                                <input type="number" id="price-atividade" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top:15px;"><i class="fa-solid fa-floppy-disk"></i> Atualizar Tabela de Preços</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-users-gear"></i> Cadastrar / Eliminar Funcionários
+                    </div>
+                    <form onsubmit="handleSaveEmployee(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Nome do Funcionário <span class="required">*</span></label>
+                                <input type="text" id="emp-nome" placeholder="Ex: Jacinto" required>
+                            </div>
+                            <div class="form-group">
+                                <label>PIN (4 dígitos) <span class="required">*</span></label>
+                                <input type="password" id="emp-pin" maxlength="4" placeholder="Ex: 1234" required pattern="\d{4}">
+                            </div>
+                            <div class="form-group">
+                                <label>Foto (URL Opcional)</label>
+                                <input type="text" id="emp-foto" placeholder="https://...">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top:15px;"><i class="fa-solid fa-user-plus"></i> Registar Funcionário</button>
+                    </form>
+
+                    <h3 style="margin-top:20px; margin-bottom:10px; font-size:1rem;">Lista de Empregados</h3>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr><th>Nome</th><th>PIN</th><th>Ações</th></tr>
+                            </thead>
+                            <tbody id="employees-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <i class="fa-solid fa-key"></i> Alterar PIN do Administrador Geral (Padrão: 0000)
+                    </div>
+                    <form onsubmit="handleChangeAdminPin(event)">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Novo PIN Admin (4 dígitos) <span class="required">*</span></label>
+                                <input type="password" id="admin-new-pin" maxlength="4" required pattern="\d{4}">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="margin-top:15px;">Atualizar PIN Admin</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let appState = {
+            currentUser: null,
+            adminPin: localStorage.getItem('mdc_admin_pin') || '0000',
+            prices: JSON.parse(localStorage.getItem('mdc_prices')) || {
+                "Clientes Diários": 2000,
+                "Pacote Festa VIP Mais Explanada Semana": 55000,
+                "Pacote Festa VIP Mais Explanada Final de Semana": 70000,
+                "Pacote Festa VIP": 45000,
+                "Pacote Festa Normal": 30000,
+                "Apaga Vela Semana": 25000,
+                "Apaga Vela Final de Semana": 35000,
+                "Pacote Escola": 1500,
+                "Atividades": 2500
+            },
+            employees: JSON.parse(localStorage.getItem('mdc_employees')) || [
+                { id: '1', name: 'Jacinto', pin: '1111', photo: '' }
+            ],
+            clients: JSON.parse(localStorage.getItem('mdc_clients')) || []
+        };
+
+        let currentPinInput = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fecho-data').value = today;
+            updatePinDots();
+            generateChildrenFields();
+            loadPricesToForm();
+            checkDatabaseCapacity();
+        });
+
+        function pressPin(num) {
+            if (currentPinInput.length < 4) {
+                currentPinInput += num;
+                updatePinDots();
+            }
+        }
+        function clearPin() {
+            currentPinInput = "";
+            updatePinDots();
+        }
+        function updatePinDots() {
+            for (let i = 0; i < 4; i++) {
+                const dot = document.getElementById(`dot-${i}`);
+                if (i < currentPinInput.length) dot.classList.add('filled');
+                else dot.classList.remove('filled');
+            }
+        }
+        function submitLogin() {
+            if (currentPinInput.length !== 4) {
+                alert("Introduza um PIN de 4 dígitos.");
+                return;
+            }
+            if (currentPinInput === appState.adminPin) {
+                appState.currentUser = { name: "Administrador Geral", role: "admin" };
+                loginSuccess();
+                return;
+            }
+            const emp = appState.employees.find(e => e.pin === currentPinInput);
+            if (emp) {
+                appState.currentUser = { name: emp.name, role: "employee" };
+                loginSuccess();
+                return;
+            }
+            alert("PIN incorreto!");
+            clearPin();
+        }
+        function loginSuccess() {
+            document.getElementById('login-screen').classList.remove('active');
+            document.getElementById('app-screen').classList.add('active');
+            document.getElementById('header-username').textContent = appState.currentUser.name;
+            document.getElementById('header-avatar').textContent = appState.currentUser.name.charAt(0).toUpperCase();
+
+            const adminBtn = document.getElementById('admin-tab-btn');
+            adminBtn.style.display = (appState.currentUser.role === 'admin') ? 'flex' : 'none';
+
+            clearPin();
+            renderClientsTable();
+            renderEmployeesTable();
+            renderFechoDoDia();
+        }
+        
+        function switchUser() {
+            appState.currentUser = null;
+            currentPinInput = "";
+            updatePinDots();
+            document.getElementById('app-screen').classList.remove('active');
+            document.getElementById('login-screen').classList.add('active');
+        }
+
+        function logout() {
+            switchUser();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            const btn = Array.from(document.querySelectorAll('.nav-tab')).find(b => b.getAttribute('onclick').includes(tabId));
+            if(btn) btn.classList.add('active');
+
+            if (tabId === 'tab-registos') renderClientsTable();
+            if (tabId === 'tab-fecho') renderFechoDoDia();
+            if (tabId === 'tab-admin') { renderEmployeesTable(); loadPricesToForm(); }
+        }
+
+        function toggleFormFields() {
+            const pacote = document.getElementById('reg-pacote').value;
+            const groupEscolaNome = document.getElementById('group-escola-nome');
+            const groupNumCriancas = document.getElementById('group-num-criancas');
+            const groupTipoFesta = document.getElementById('group-tipo-festa');
+            const groupLanche = document.getElementById('group-lanche');
+            const labelAdulto = document.getElementById('label-adulto');
+
+            groupEscolaNome.style.display = 'none';
+            groupNumCriancas.style.display = 'flex';
+            groupTipoFesta.style.display = 'none';
+            groupLanche.style.display = 'none';
+            labelAdulto.innerHTML = 'Nome do Responsável/Adulto <span class="required">*</span>';
+
+            if (pacote === 'Pacote Escola') {
+                groupEscolaNome.style.display = 'flex';
+                groupLanche.style.display = 'flex';
+                labelAdulto.innerHTML = 'Nome do Responsável pela Instituição <span class="required">*</span>';
+            } else if (pacote === 'Pacote Festa') {
+                groupTipoFesta.style.display = 'flex';
+            }
+            generateChildrenFields();
+        }
+
+        function generateChildrenFields() {
+            const container = document.getElementById('children-dynamic-area');
+            container.innerHTML = '';
+            const count = parseInt(document.getElementById('reg-num-criancas').value) || 1;
+
+            let html = `<label style="margin-bottom:8px; display:block; font-weight:700;">Dados da(s) Criança(s):</label>`;
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div class="dynamic-child-container">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Nome da Criança #${i+1} <span class="required">*</span></label>
+                                <input type="text" name="crianca_nome" placeholder="Nome completo da criança" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Data de Nascimento <small>(Opcional)</small></label>
+                                <input type="date" name="crianca_nasc">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        function handleSaveClient(event) {
+            event.preventDefault();
+            const pacote = document.getElementById('reg-pacote').value;
+            const responsavel = document.getElementById('reg-responsavel').value;
+            const telefone = document.getElementById('reg-telefone').value;
+            const nif = document.getElementById('reg-nif').value || '-';
+            const municipio = document.getElementById('reg-municipio').value || '-';
+            const bairro = document.getElementById('reg-bairro').value || '-';
+            
+            const escolaNome = (pacote === 'Pacote Escola') ? document.getElementById('reg-escola-nome').value : '-';
+            const tipoFesta = (pacote === 'Pacote Festa') ? document.getElementById('reg-tipo-festa-val').value : '';
+            const lanche = (pacote === 'Pacote Escola') ? document.getElementById('reg-lanche-val').value : '';
+            const numCriancas = document.getElementById('reg-num-criancas').value;
+
+            const nomesCriancas = document.querySelectorAll('input[name="crianca_nome"]');
+            const datasNasc = document.querySelectorAll('input[name="crianca_nasc"]');
+            let criancasArr = [];
+            for(let i=0; i<nomesCriancas.length; i++) {
+                criancasArr.push({
+                    nome: nomesCriancas[i].value,
+                    nascimento: datasNasc[i].value || '-'
+                });
+            }
+
+            let valorTotal = 0;
+            if (pacote === 'Clientes Diários') {
+                valorTotal = appState.prices['Clientes Diários'] * criancasArr.length;
+            } else if (pacote === 'Pacote Festa') {
+                valorTotal = appState.prices[tipoFesta] || 0;
+            } else if (pacote === 'Pacote Escola') {
+                valorTotal = appState.prices['Pacote Escola'] * parseInt(numCriancas);
+            } else if (pacote === 'Atividades') {
+                valorTotal = appState.prices['Atividades'] * criancasArr.length;
+            }
+
+            const now = new Date();
+            const newClient = {
+                id: Date.now().toString(),
+                datetime: now.toISOString(),
+                dateFormatted: now.toLocaleDateString('pt-PT') + ' ' + now.toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'}),
+                dateOnly: now.toISOString().split('T')[0],
+                pacote,
+                responsavel,
+                escolaNome,
+                telefone,
+                nif,
+                municipio,
+                bairro,
+                tipoFesta,
+                lanche,
+                numCriancas: criancasArr.length,
+                criancas: criancasArr,
+                valorTotal,
+                operator: appState.currentUser.name
+            };
+
+            appState.clients.unshift(newClient);
+            localStorage.setItem('mdc_clients', JSON.stringify(appState.clients));
+
+            alert(`Registo guardado com sucesso! Valor estimado: ${valorTotal.toLocaleString()} AOA`);
+            document.getElementById('client-form').reset();
+            generateChildrenFields();
+            checkDatabaseCapacity();
+        }
+
+        function checkDatabaseCapacity() {
+            const alertBanner = document.getElementById('db-alert-banner');
+            if (appState.clients.length >= 300) {
+                alertBanner.style.display = 'flex';
+            } else {
+                alertBanner.style.display = 'none';
+            }
+        }
+
+        function resetDatabasePrompt() {
+            if(confirm("Deseja limpar os registos antigos após o backup para restaurar o espaço?")) {
+                appState.clients = [];
+                localStorage.setItem('mdc_clients', JSON.stringify(appState.clients));
+                checkDatabaseCapacity();
+                renderClientsTable();
+            }
+        }
+
+        function renderClientsTable() {
+            const tbody = document.getElementById('clients-table-body');
+            const search = document.getElementById('search-input').value.toLowerCase();
+            const filter = document.getElementById('filter-pacote').value;
+            tbody.innerHTML = '';
+
+            const filtered = appState.clients.filter(c => {
+                const matchSearch = c.responsavel.toLowerCase().includes(search) || 
+                                    c.escolaNome.toLowerCase().includes(search) ||
+                                    c.telefone.includes(search) ||
+                                    c.criancas.some(ch => ch.nome.toLowerCase().includes(search));
+                const matchFilter = filter === '' || c.pacote === filter;
+                return matchSearch && matchFilter;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:var(--gray-600);">Nenhum registo encontrado.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(c => {
+                let badge = 'badge-diario';
+                if(c.pacote==='Pacote Festa') badge='badge-festa';
+                if(c.pacote==='Pacote Escola') badge='badge-escola';
+                if(c.pacote==='Atividades') badge='badge-atividade';
+
+                let criancasStr = c.criancas.map(ch => `${ch.nome} (${ch.nascimento})`).join(', ');
+                if(c.pacote === 'Pacote Escola') criancasStr = `Escola: ${c.escolaNome} | Qtd: ${c.numCriancas} | ${c.lanche}`;
+                if(c.pacote === 'Pacote Festa') criancasStr = `${c.tipoFesta} | Crianças: ${criancasStr}`;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><small>${c.dateFormatted}</small></td>
+                    <td><span class="badge ${badge}">${c.pacote}</span></td>
+                    <td><strong>${c.responsavel}</strong><br><small>NIF: ${c.nif}</small></td>
+                    <td>${criancasStr}</td>
+                    <td>${c.telefone}</td>
+                    <td>${c.municipio} / ${c.bairro}</td>
+                    <td>${c.operator}</td>
+                    <td><button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteClient('${c.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deleteClient(id) {
+            if(appState.currentUser.role !== 'admin') {
+                alert("Apenas o Administrador pode eliminar registos!");
+                return;
+            }
+            if(confirm("Eliminar este registo?")) {
+                appState.clients = appState.clients.filter(c => c.id !== id);
+                localStorage.setItem('mdc_clients', JSON.stringify(appState.clients));
+                renderClientsTable();
+                checkDatabaseCapacity();
+            }
+        }
+
+        function renderFechoDoDia() {
+            const date = document.getElementById('fecho-data').value;
+            const filtered = appState.clients.filter(c => c.dateOnly === date);
+
+            document.getElementById('stat-total-hoje').textContent = filtered.length;
+            const totalValor = filtered.reduce((acc, curr) => acc + (curr.valorTotal || 0), 0);
+            document.getElementById('stat-valor-hoje').textContent = totalValor.toLocaleString() + ' AOA';
+            document.getElementById('stat-diario-hoje').textContent = filtered.filter(c => c.pacote === 'Clientes Diários').length;
+            document.getElementById('stat-festas-escolas-hoje').textContent = filtered.filter(c => c.pacote === 'Pacote Festa' || c.pacote === 'Pacote Escola').length;
+
+            const tbody = document.getElementById('fecho-table-body');
+            tbody.innerHTML = '';
+            filtered.forEach(c => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${c.dateFormatted.split(' ')[1]}</td>
+                    <td>${c.pacote}</td>
+                    <td>${c.responsavel} (${c.escolaNome !== '-' ? c.escolaNome : c.numCriancas + ' cri.'})</td>
+                    <td><strong>${(c.valorTotal || 0).toLocaleString()} AOA</strong></td>
+                    <td>${c.operator}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function loadPricesToForm() {
+            document.getElementById('price-diario').value = appState.prices['Clientes Diários'];
+            document.getElementById('price-vip-exp-sem').value = appState.prices['Pacote Festa VIP Mais Explanada Semana'];
+            document.getElementById('price-vip-exp-fds').value = appState.prices['Pacote Festa VIP Mais Explanada Final de Semana'];
+            document.getElementById('price-vip').value = appState.prices['Pacote Festa VIP'];
+            document.getElementById('price-normal').value = appState.prices['Pacote Festa Normal'];
+            document.getElementById('price-vela-sem').value = appState.prices['Apaga Vela Semana'];
+            document.getElementById('price-vela-fds').value = appState.prices['Apaga Vela Final de Semana'];
+            document.getElementById('price-escola').value = appState.prices['Pacote Escola'];
+            document.getElementById('price-atividade').value = appState.prices['Atividades'];
+        }
+
+        function handleSavePrices(event) {
+            event.preventDefault();
+            appState.prices['Clientes Diários'] = parseFloat(document.getElementById('price-diario').value);
+            appState.prices['Pacote Festa VIP Mais Explanada Semana'] = parseFloat(document.getElementById('price-vip-exp-sem').value);
+            appState.prices['Pacote Festa VIP Mais Explanada Final de Semana'] = parseFloat(document.getElementById('price-vip-exp-fds').value);
+            appState.prices['Pacote Festa VIP'] = parseFloat(document.getElementById('price-vip').value);
+            appState.prices['Pacote Festa Normal'] = parseFloat(document.getElementById('price-normal').value);
+            appState.prices['Apaga Vela Semana'] = parseFloat(document.getElementById('price-vela-sem').value);
+            appState.prices['Apaga Vela Final de Semana'] = parseFloat(document.getElementById('price-vela-fds').value);
+            appState.prices['Pacote Escola'] = parseFloat(document.getElementById('price-escola').value);
+            appState.prices['Atividades'] = parseFloat(document.getElementById('price-atividade').value);
+
+            localStorage.setItem('mdc_prices', JSON.stringify(appState.prices));
+            alert("Preços atualizados com sucesso!");
+        }
+
+        function exportToCSV() {
+            if (appState.clients.length === 0) {
+                alert("Sem dados para exportar!");
+                return;
+            }
+            let csv = "DataHora,Categoria,Responsavel,Escola,Telefone,NIF,Municipio,Bairro,DetalhesCriancas,ValorTotal,Operador\n";
+            appState.clients.forEach(c => {
+                let criancasDesc = c.criancas.map(ch => `${ch.nome}(${ch.nascimento})`).join(' | ');
+                csv += `"${c.dateFormatted}","${c.pacote}","${c.responsavel}","${c.escolaNome}","${c.telefone}","${c.nif}","${c.municipio}","${c.bairro}","${criancasDesc}","${c.valorTotal}","${c.operator}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `MDC_Backup_BaseDados_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+        }
+
+        function handleSaveEmployee(e) {
+            e.preventDefault();
+            const name = document.getElementById('emp-nome').value;
+            const pin = document.getElementById('emp-pin').value;
+            appState.employees.push({ id: Date.now().toString(), name, pin });
+            localStorage.setItem('mdc_employees', JSON.stringify(appState.employees));
+            alert("Funcionário registado!");
+            document.getElementById('emp-nome').value = '';
+            document.getElementById('emp-pin').value = '';
+            renderEmployeesTable();
+        }
+        function renderEmployeesTable() {
+            const tbody = document.getElementById('employees-table-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            appState.employees.forEach(emp => {
+                tbody.innerHTML += `<tr><td>${emp.name}</td><td>****</td><td><button class="btn btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="deleteEmp('${emp.id}')">Eliminar</button></td></tr>`;
+            });
+        }
+        function deleteEmp(id) {
+            appState.employees = appState.employees.filter(e => e.id !== id);
+            localStorage.setItem('mdc_employees', JSON.stringify(appState.employees));
+            renderEmployeesTable();
+        }
+        function handleChangeAdminPin(e) {
+            e.preventDefault();
+            const newPin = document.getElementById('admin-new-pin').value;
+            appState.adminPin = newPin;
+            localStorage.setItem('mdc_admin_pin', newPin);
+            alert("PIN do Administrador alterado com sucesso!");
+        }
+    </script>
+</body>
+</html>
